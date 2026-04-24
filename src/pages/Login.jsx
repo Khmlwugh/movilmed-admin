@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { auth } from '../firebase'
-import { signInWithEmailAndPassword } from 'firebase/auth'
+import { signInWithEmailAndPassword, signOut } from 'firebase/auth'
 
 function Login() {
   const [email, setEmail] = useState('')
@@ -12,8 +12,19 @@ function Login() {
     e.preventDefault()
     setCargando(true)
     setError('')
+
     try {
-      await signInWithEmailAndPassword(auth, email, password)
+      const result = await signInWithEmailAndPassword(auth, email, password)
+      
+      // Check domain
+      const emailDomain = result.user.email.split('@')[1]
+      if (emailDomain !== 'medalert.com') {
+        await signOut(auth)
+        setError('No tienes permisos de administrador.')
+        setCargando(false)
+        return
+      }
+      
     } catch (err) {
       setError('Credenciales incorrectas. Intenta de nuevo.')
       setCargando(false)
